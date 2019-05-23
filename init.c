@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "c14n.h"
 #include "xpath.h"
+#include "tree.h"
 
 napi_value
 Init(napi_env env, napi_value exports)
@@ -16,6 +17,10 @@ Init(napi_env env, napi_value exports)
 		return NULL;
 
 	status = xpath_init(env, exports);
+	if (status != napi_ok)
+		return NULL;
+
+	status = tree_init(env, exports);
 	if (status != napi_ok)
 		return NULL;
 

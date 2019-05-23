@@ -3,9 +3,10 @@
     {
       "target_name": "libxml2",
       "sources": [
+        "c14n.c",
         "init.c",
 	"parser.c",
-        "c14n.c",
+	"tree.c",
 	"xpath.c"
       ],
       "include_dirs": [

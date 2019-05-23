@@ -27,7 +27,7 @@ _xmlReadDoc(napi_env env, napi_callback_info info)
 	napi_status 			status;
 	napi_valuetype			vt;
 	size_t 				argc = 4, strl;
-	napi_value 			argv[4], _o, _n, export;
+	napi_value 			argv[4], export;
 	xmlChar 			*cur;
 	char 				*url = NULL, encoding[30];
 	int64_t				opts;
@@ -146,42 +146,10 @@ _xmlReadDoc(napi_env env, napi_callback_info info)
 	free(cur);
 	free(url);
 
-	// creating result object
-	status = napi_create_object(env, &export);
-	if (status != napi_ok) {
-		napi_throw_error(env, NULL, "Can't create result object");
-		xmlFreeDoc(doc);
-		return NULL;
-	}
-
 	// creating doc external
-	status = napi_create_external(env, doc, _xmlReadDocFree, NULL, &_o);
+	status = napi_create_external(env, doc, _xmlReadDocFree, NULL, &export);
 	if (status != napi_ok) {
 		napi_throw_error(env, NULL, "Can't create external reference");
-		xmlFreeDoc(doc);
-		return NULL;
-	}
-
-	// creating doc object name
-	status = napi_create_string_latin1(env, "xmlDoc", NAPI_AUTO_LENGTH,
-	    &_n);
-	if (status != napi_ok) {
-		napi_throw_error(env, NULL, "Can't create obj name");
-		xmlFreeDoc(doc);
-		return NULL;
-	}
-
-	// Object properties
-	napi_property_descriptor props[] = {
-		{ "_n", NULL, NULL, NULL, NULL, _n, napi_default, NULL },
-		{ "_o", NULL, NULL, NULL, NULL, _o, napi_default, NULL }
-	};
-
-	// create object
-	status = napi_define_properties(env, export, 2, props); 
-	if (status != napi_ok) {
-		napi_throw_error(env, NULL, "Can't define result obj "
-		    "properties");
 		xmlFreeDoc(doc);
 		return NULL;
 	}
