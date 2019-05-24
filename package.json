@@ -4,7 +4,8 @@
   "description": "A wrapper for libxml2 (or an attempt to)",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "node-pre-gyp install --fallback-to-build"
   },
   "repository": {
     "type": "git",
@@ -23,7 +24,15 @@
     "url": "https://github.com/radixo/libxml2-nodejs/issues"
   },
   "homepage": "https://github.com/radixo/libxml2-nodejs#readme",
+  "dependencies": {
+    "node-pre-gyp": "^0.13.0"
+  },
+  "binary": {
+    "module_name": "xml2",
+    "module_path": "build/Release",
+    "host": "https://libxml2-nodejs.s3-us-east-1.amazonaws.com"
+  },
   "devDependencies": {
-    "node-gyp": "^4.0.0"
+    "aws-sdk": "^2.462.0"
   }
 }
