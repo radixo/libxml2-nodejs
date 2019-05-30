@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <libxml/tree.h>
 
+#include "napi.h"
 #include "tree.h"
 
 napi_status
@@ -9,85 +10,20 @@ tree_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	status = napi_create_function(env, NULL, 0, _xmlDocGetRootElement, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlDocGetRootElement",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_type, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_type",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_name, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_name",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_next, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_next",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_prev, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_prev",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_parent, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_parent",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_children, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_children",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlNode_eq, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlNode_eq",
-	    fn);
-	if (status != napi_ok)
-		return status;
+	NAPI_EXPORT_FN(status, env, _xmlDocGetRootElement,
+	    "xmlDocGetRootElement", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_type, "xmlNode_type", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_name, "xmlNode_name", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_next, "xmlNode_next", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_prev, "xmlNode_prev", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_parent, "xmlNode_parent", fn,
+	    exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_children, "xmlNode_children", fn,
+	    exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_eq, "xmlNode_eq", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlGetProp, "xmlGetProp", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlDocDumpMemory, "xmlDocDumpMemory", fn,
+	    exports);
 
 	return napi_ok;
 }
@@ -384,5 +320,101 @@ _xmlNode_eq(napi_env env, napi_callback_info info)
 		return NULL;
 	}
 
+	return export;
+}
+
+napi_value
+_xmlGetProp(napi_env env, napi_callback_info info)
+{
+	napi_status	status;
+	size_t		argc = 2, len;
+	napi_value	argv[2], export;
+	xmlNodePtr	node;
+	char		*pname;
+	xmlChar		*pval;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlNode
+	status = napi_get_value_external(env, argv[0], (void **)&node);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNode at arg 0");
+		return NULL;
+	}
+
+	// Get property name
+	status = napi_get_value_string_latin1(env, argv[1], NULL, 0, &len);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read name at arg 1");
+		return NULL;
+	}
+	pname = (char *)malloc(++len);
+	status = napi_get_value_string_latin1(env, argv[1], pname, len, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read name at arg 1");
+		free(pname);
+		return NULL;
+	}
+
+	// Get prop
+	pval = xmlGetProp(node, BAD_CAST pname);
+	if (pval == NULL) {
+		free(pname);
+		return NULL;
+	}
+
+	// Creating return
+	status = napi_create_string_utf8(env, (char *)pval, NAPI_AUTO_LENGTH,
+	    &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create return");
+		free(pname);
+	}
+
+	free(pname);
+	return export;
+}
+
+napi_value
+_xmlDocDumpMemory(napi_env env, napi_callback_info info)
+{
+	napi_status	status;
+	size_t		argc = 1;
+	napi_value	argv[1], export;
+	xmlDocPtr	doc;
+	xmlChar		*mem;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlDoc
+	status = napi_get_value_external(env, argv[0], (void **)&doc);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlDoc at arg 0");
+		return NULL;
+	}
+
+	// Get Document
+	xmlDocDumpMemory(doc, (xmlChar **)&mem, NULL);
+
+	// Create export
+	status = napi_create_string_utf8(env, (char *)mem, NAPI_AUTO_LENGTH,
+	    &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create return");
+		xmlFree(mem);
+		return NULL;
+	}
+
+	xmlFree(mem);
 	return export;
 }

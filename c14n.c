@@ -2,6 +2,7 @@
 #include <libxml/xpath.h>
 #include <libxml/c14n.h>
 
+#include "napi.h"
 #include "c14n.h"
 
 napi_status
@@ -10,15 +11,8 @@ c14n_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	status = napi_create_function(env, NULL, 0, _xmlC14NDocDumpMemory, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlC14NDocDumpMemory",
-	    fn);
-	if (status != napi_ok)
-		return status;
+	NAPI_EXPORT_FN(status, env, _xmlC14NDocDumpMemory,
+	    "xmlC14NDocDumpMemory", fn, exports);
 
 	return napi_ok;
 }

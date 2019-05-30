@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
+#include "napi.h"
 #include "xpath.h"
 
 napi_status
@@ -10,45 +12,23 @@ xpath_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	status = napi_create_function(env, NULL, 0, _xmlXPathNewContext, NULL,
-	    &fn);
-	if (status != napi_ok)
-		return status;
 
-	status = napi_set_named_property(env, exports, "xmlXPathNewContext",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlXPathEvalExpression,
-	    NULL, &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports, "xmlXPathEvalExpression",
-	    fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlXPathContext_set_node,
-	    NULL, &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports,
-	    "xmlXPathContext_set_node", fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_create_function(env, NULL, 0, _xmlXPathObject_nodesetval,
-	    NULL, &fn);
-	if (status != napi_ok)
-		return status;
-
-	status = napi_set_named_property(env, exports,
-	    "xmlXPathObject_nodesetval", fn);
-	if (status != napi_ok)
-		return status;
+	NAPI_EXPORT_FN(status, env, _xmlXPathNewContext, "xmlXPathNewContext",
+	    fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlXPathEvalExpression,
+	    "xmlXPathEvalExpression", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlXPathContext_set_node,
+	    "xmlXPathContext_set_node", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlXPathObject_nodesetval,
+	    "xmlXPathObject_nodesetval", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlXPathRegisterNs, "xmlXPathRegisterNs",
+	    fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeNr, "xmlNodeSet_nodeNr",
+	    fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeMax, "xmlNodeSet_nodeMax",
+	    fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeTab_pos,
+	    "xmlNodeSet_nodeTab_pos", fn, exports);
 
 	return napi_ok;
 }
@@ -280,6 +260,183 @@ _xmlXPathObject_nodesetval(napi_env env, napi_callback_info info)
 	    &export);
 	if (status != napi_ok) {
 		napi_throw_error(env, NULL, "Can't create export");
+		return NULL;
+	}
+
+	return export;
+}
+
+napi_value
+_xmlXPathRegisterNs(napi_env env, napi_callback_info info)
+{
+	napi_status		status;
+	size_t			argc = 3, len;
+	napi_value		argv[3];
+	xmlXPathContextPtr	ctxt;
+	xmlChar			*prefix, *href;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get XPathObject
+	status = napi_get_value_external(env, argv[0], (void **)&ctxt);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlXPathContext "
+		    "reference");
+		return NULL;
+	}
+
+	// Get prefix string
+	status = napi_get_value_string_latin1(env, argv[1], NULL, 0, &len);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Cant't get 'prefix' length");
+		return NULL;
+	}
+	prefix = malloc(++len);
+	status = napi_get_value_string_latin1(env, argv[1], (char *)prefix, len,
+	    NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't get 'prefix' value");
+		free(prefix);
+		return NULL;
+	}
+
+	// Get href string
+	status = napi_get_value_string_latin1(env, argv[1], NULL, 0, &len);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Cant't get 'href' length");
+		return NULL;
+	}
+	href = malloc((int)++len);
+	status = napi_get_value_string_latin1(env, argv[1], (char *)href, len,
+	    NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't get 'href' value");
+		free(prefix);
+		free(href);
+		return NULL;
+	}
+
+	// try to register namespace
+	if (xmlXPathRegisterNs(ctxt, prefix, href) != 0) {
+		size_t len = 200 + strlen((char *)prefix) + strlen(
+		    (char *)href);
+		char *msg = malloc(len);
+
+		snprintf(msg, len, "Register NS error: prefix '%s', href '%s'",
+		    prefix, href);
+		napi_throw_error(env, NULL, msg);
+		free(msg);
+	}
+
+	free(prefix);
+	free(href);
+	return NULL;
+}
+
+napi_value
+_xmlNodeSet_nodeNr(napi_env env, napi_callback_info info)
+{
+	napi_status		status;
+	size_t			argc = 1;
+	napi_value		argv[1], export;
+	xmlNodeSetPtr		nodesetp;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlNodeSet
+	status = napi_get_value_external(env, argv[0], (void **)&nodesetp);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNodeSet reference");
+		return NULL;
+	}
+
+	// Create export
+	status = napi_create_int32(env, nodesetp->nodeNr, &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create export value");
+		return NULL;
+	}
+
+	return export;
+}
+
+napi_value
+_xmlNodeSet_nodeMax(napi_env env, napi_callback_info info)
+{
+	napi_status		status;
+	size_t			argc = 1;
+	napi_value		argv[1], export;
+	xmlNodeSetPtr		nodesetp;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlNodeSet
+	status = napi_get_value_external(env, argv[0], (void **)&nodesetp);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNodeSet reference");
+		return NULL;
+	}
+
+	// Create export
+	status = napi_create_int32(env, nodesetp->nodeMax, &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create export value");
+		return NULL;
+	}
+
+	return export;
+}
+
+napi_value
+_xmlNodeSet_nodeTab_pos(napi_env env, napi_callback_info info)
+{
+	napi_status		status;
+	size_t			argc = 2;
+	napi_value		argv[2], export;
+	xmlNodeSetPtr		nodesetp;
+	int32_t			pos;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlNodeSet
+	status = napi_get_value_external(env, argv[0], (void **)&nodesetp);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNodeSet reference");
+		return NULL;
+	}
+
+	// Get xmlNodeSet
+	status = napi_get_value_int32(env, argv[1], &pos);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read pos");
+		return NULL;
+	}
+
+	// Create export
+	status = napi_create_external(env, nodesetp->nodeTab[pos], NULL, NULL,
+	    &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create export value");
 		return NULL;
 	}
 
