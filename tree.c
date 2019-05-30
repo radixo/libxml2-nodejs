@@ -27,11 +27,11 @@ tree_init(napi_env env, napi_value exports)
 	NAPI_EXPORT_FN(status, env, _xmlNewNode, "xmlNewNode", fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlNewNs, "xmlNewNs", fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlSetNs, "xmlSetNs", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddNextSibling, "xmlSetAddNextSibling",
+	NAPI_EXPORT_FN(status, env, _xmlAddNextSibling, "xmlAddNextSibling",
 	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddPrevSibling, "xmlSetAddPrevSibling",
+	NAPI_EXPORT_FN(status, env, _xmlAddPrevSibling, "xmlAddPrevSibling",
 	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddChild, "xmlSetAddChild", fn,
+	NAPI_EXPORT_FN(status, env, _xmlAddChild, "xmlAddChild", fn,
 	    exports);
 	NAPI_EXPORT_FN(status, env, _xmlNewProp, "xmlNewProp", fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlNodeAddContent, "xmlNodeAddContent", fn,
