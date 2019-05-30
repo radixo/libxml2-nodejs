@@ -8,6 +8,7 @@
 	if (STATUS != napi_ok)						\
 		return STATUS;						\
 	STATUS = napi_set_named_property(ENV, EXPORTS, SFN, VFN);	\
+	if (STATUS != napi_ok)						\
 		return STATUS;
 
 #endif
