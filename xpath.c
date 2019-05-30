@@ -27,8 +27,8 @@ xpath_init(napi_env env, napi_value exports)
 	    fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeMax, "xmlNodeSet_nodeMax",
 	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeTab_pos,
-	    "xmlNodeSet_nodeTab_pos", fn, exports);
+	NAPI_EXPORT_FN(status, env, _xmlNodeSet_pos_nodeTab,
+	    "xmlNodeSet_pos_nodeTab", fn, exports);
 
 	return napi_ok;
 }
@@ -403,7 +403,7 @@ _xmlNodeSet_nodeMax(napi_env env, napi_callback_info info)
 }
 
 napi_value
-_xmlNodeSet_nodeTab_pos(napi_env env, napi_callback_info info)
+_xmlNodeSet_pos_nodeTab(napi_env env, napi_callback_info info)
 {
 	napi_status		status;
 	size_t			argc = 2;

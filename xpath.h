@@ -11,6 +11,6 @@ napi_value	_xmlXPathObject_nodesetval(napi_env, napi_callback_info);
 napi_value	_xmlXPathRegisterNs(napi_env, napi_callback_info);
 napi_value	_xmlNodeSet_nodeNr(napi_env, napi_callback_info);
 napi_value	_xmlNodeSet_nodeMax(napi_env, napi_callback_info);
-napi_value	_xmlNodeSet_nodeTab_pos(napi_env, napi_callback_info);
+napi_value	_xmlNodeSet_pos_nodeTab(napi_env, napi_callback_info);
 
 #endif
