@@ -11,6 +11,7 @@ napi_value	_xmlNode_next(napi_env, napi_callback_info);
 napi_value	_xmlNode_prev(napi_env, napi_callback_info);
 napi_value	_xmlNode_parent(napi_env, napi_callback_info);
 napi_value	_xmlNode_children(napi_env, napi_callback_info);
+napi_value	_xmlNode_content(napi_env, napi_callback_info);
 napi_value	_xmlNode_eq(napi_env, napi_callback_info);
 napi_value	_xmlGetProp(napi_env, napi_callback_info);
 napi_value	_xmlDocDumpMemory(napi_env, napi_callback_info);

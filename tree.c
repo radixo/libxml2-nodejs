@@ -18,6 +18,8 @@ tree_init(napi_env env, napi_value exports)
 	NAPI_EXPORT_FN(status, env, _xmlNode_prev, "xmlNode_prev", fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlNode_parent, "xmlNode_parent", fn,
 	    exports);
+	NAPI_EXPORT_FN(status, env, _xmlNode_content, "xmlNode_content", fn,
+	    exports);
 	NAPI_EXPORT_FN(status, env, _xmlNode_children, "xmlNode_children", fn,
 	    exports);
 	NAPI_EXPORT_FN(status, env, _xmlNode_eq, "xmlNode_eq", fn, exports);
@@ -40,6 +42,14 @@ tree_init(napi_env env, napi_value exports)
 	return napi_ok;
 }
 
+
+/**
+ * Get the root element of the document.
+ * @name xmlDocGetRootElement
+ * @function
+ * @param {xmlDocPtr} doc The document
+ * @return {xmlNodePtr} the #xmlNodePtr for the root or undefined
+ */
 napi_value
 _xmlDocGetRootElement(napi_env env, napi_callback_info info)
 {
@@ -248,6 +258,42 @@ _xmlNode_parent(napi_env env, napi_callback_info info)
 	if (status != napi_ok) {
 		napi_throw_error(env, NULL, "Can't create export");
 		return NULL;
+	}
+
+	return export;
+}
+
+napi_value
+_xmlNode_content(napi_env env, napi_callback_info info)
+{
+	napi_status	status;
+	size_t		argc = 1;
+	napi_value	argv[1], export;
+	xmlNodePtr	node;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlNode
+	status = napi_get_value_external(env, argv[0], (void **)&node);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNode at arg 0");
+		return NULL;
+	}
+
+	// return null when null
+	if (node->content == NULL)
+		return NULL;
+
+	// create the export
+	status = napi_create_string_utf8(env, (char *)node->content,
+	    NAPI_AUTO_LENGTH, &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create return");
 	}
 
 	return export;
