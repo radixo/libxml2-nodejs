@@ -38,6 +38,8 @@ tree_init(napi_env env, napi_value exports)
 	NAPI_EXPORT_FN(status, env, _xmlNewProp, "xmlNewProp", fn, exports);
 	NAPI_EXPORT_FN(status, env, _xmlNodeAddContent, "xmlNodeAddContent", fn,
 	    exports);
+	NAPI_EXPORT_FN(status, env, _xmlNodeGetContent, "xmlNodeGetContent", fn,
+	    exports);
 
 	return napi_ok;
 }
@@ -936,4 +938,43 @@ _xmlNodeAddContent(napi_env env, napi_callback_info info)
 
 	free(content);
 	return NULL;
+}
+
+napi_value
+_xmlNodeGetContent(napi_env env, napi_callback_info info)
+{
+	napi_status	status;
+	size_t		argc = 1;
+	napi_value	argv[1], export;
+	xmlNodePtr	node;
+	xmlChar		*mem;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlDoc
+	status = napi_get_value_external(env, argv[0], (void **)&node);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNode at arg 0");
+		return NULL;
+	}
+
+	// Get Document
+	mem = xmlNodeGetContent(node);
+
+	// Create export
+	status = napi_create_string_utf8(env, (char *)mem, NAPI_AUTO_LENGTH,
+	    &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create return");
+		xmlFree(mem);
+		return NULL;
+	}
+
+	xmlFree(mem);
+	return export;
 }

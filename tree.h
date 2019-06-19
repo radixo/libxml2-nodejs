@@ -23,5 +23,6 @@ napi_value	_xmlAddPrevSibling(napi_env, napi_callback_info);
 napi_value	_xmlAddChild(napi_env, napi_callback_info);
 napi_value	_xmlNewProp(napi_env, napi_callback_info);
 napi_value	_xmlNodeAddContent(napi_env, napi_callback_info);
+napi_value	_xmlNodeGetContent(napi_env, napi_callback_info);
 
 #endif
