@@ -33,6 +33,7 @@
     "host": "https://libxml2-nodejs.s3-us-east-1.amazonaws.com"
   },
   "devDependencies": {
-    "aws-sdk": "^2.462.0"
+    "aws-sdk": "^2.462.0",
+    "jsdoc-to-markdown": "^5.0.0"
   }
 }

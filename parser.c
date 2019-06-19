@@ -15,6 +15,16 @@ parser_init(napi_env env, napi_value exports)
 	return napi_ok;
 }
 
+/**
+ * Parse a XML string and build a tree.
+ * @name xmlReadDoc
+ * @function
+ * @param {string} cur XML Document string representation
+ * @param {string} URL The base URL to use for the document
+ * @param {string} encoding The document encoding, or null
+ * @param {number} options A combination of xmlParserOptions
+ * @return {xmlDocPtr} The resulting document tree
+ */
 napi_value
 _xmlReadDoc(napi_env env, napi_callback_info info)
 {
