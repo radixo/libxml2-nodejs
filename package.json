@@ -1,6 +1,6 @@
 {
   "name": "libxml2-nodejs",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A wrapper for libxml2 (or an attempt to)",
   "main": "index.js",
   "scripts": {
