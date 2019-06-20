@@ -11,8 +11,7 @@ c14n_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	NAPI_EXPORT_FN(status, env, _xmlC14NDocDumpMemory,
-	    "xmlC14NDocDumpMemory", fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlC14NDocDumpMemory, fn, exports);
 
 	return napi_ok;
 }

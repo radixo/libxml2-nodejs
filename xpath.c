@@ -12,23 +12,14 @@ xpath_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-
-	NAPI_EXPORT_FN(status, env, _xmlXPathNewContext, "xmlXPathNewContext",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlXPathEvalExpression,
-	    "xmlXPathEvalExpression", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlXPathContext_set_node,
-	    "xmlXPathContext_set_node", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlXPathObject_nodesetval,
-	    "xmlXPathObject_nodesetval", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlXPathRegisterNs, "xmlXPathRegisterNs",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeNr, "xmlNodeSet_nodeNr",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeSet_nodeMax, "xmlNodeSet_nodeMax",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeSet_pos_nodeTab,
-	    "xmlNodeSet_pos_nodeTab", fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlXPathNewContext, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlXPathEvalExpression, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlXPathContext_set_node, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlXPathObject_nodesetval, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlXPathRegisterNs, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNodeSet_nodeNr, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNodeSet_nodeMax, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNodeSet_pos_nodeTab, fn, exports);
 
 	return napi_ok;
 }

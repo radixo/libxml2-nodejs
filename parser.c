@@ -10,7 +10,7 @@ parser_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	NAPI_EXPORT_FN(status, env, _xmlReadDoc, "xmlReadDoc", fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlReadDoc, fn, exports);
 
 	return napi_ok;
 }

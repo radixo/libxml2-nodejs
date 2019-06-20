@@ -10,36 +10,27 @@ tree_init(napi_env env, napi_value exports)
 	napi_status status;
 	napi_value fn;
 
-	NAPI_EXPORT_FN(status, env, _xmlDocGetRootElement,
-	    "xmlDocGetRootElement", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_type, "xmlNode_type", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_name, "xmlNode_name", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_next, "xmlNode_next", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_prev, "xmlNode_prev", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_parent, "xmlNode_parent", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_content, "xmlNode_content", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_children, "xmlNode_children", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNode_eq, "xmlNode_eq", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlGetProp, "xmlGetProp", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlDocDumpMemory, "xmlDocDumpMemory", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNewNode, "xmlNewNode", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNewNs, "xmlNewNs", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlSetNs, "xmlSetNs", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddNextSibling, "xmlAddNextSibling",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddPrevSibling, "xmlAddPrevSibling",
-	    fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlAddChild, "xmlAddChild", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNewProp, "xmlNewProp", fn, exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeAddContent, "xmlNodeAddContent", fn,
-	    exports);
-	NAPI_EXPORT_FN(status, env, _xmlNodeGetContent, "xmlNodeGetContent", fn,
-	    exports);
+	NAPI_EXPORT_FN(status, env, xmlDocGetRootElement, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_type, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_name, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_next, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_prev, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_parent, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_content, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_children, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNode_eq, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlGetProp, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlDocDumpMemory, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlDoc_encoding, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNewNode, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNewNs, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlSetNs, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlAddNextSibling, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlAddPrevSibling, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlAddChild, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNewProp, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNodeAddContent, fn, exports);
+	NAPI_EXPORT_FN(status, env, xmlNodeDumpOutput, fn, exports);
 
 	return napi_ok;
 }
@@ -476,6 +467,43 @@ _xmlDocDumpMemory(napi_env env, napi_callback_info info)
 	}
 
 	xmlFree(mem);
+	return export;
+}
+
+napi_value
+_xmlDoc_encoding(napi_env env, napi_callback_info info)
+{
+	napi_status	status;
+	size_t		argc = 1;
+	napi_value	argv[1], export;
+	xmlDocPtr	doc;
+
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlDoc
+	status = napi_get_value_external(env, argv[0], (void **)&doc);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlDoc at arg 0");
+		return NULL;
+	}
+
+	if (doc->encoding == NULL)
+		return NULL;
+
+	// Create export
+	status = napi_create_string_utf8(env, (char *)doc->encoding,
+	    NAPI_AUTO_LENGTH, &export);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't create return");
+		return NULL;
+	}
+
 	return export;
 }
 
@@ -956,7 +984,7 @@ _xmlNodeGetContent(napi_env env, napi_callback_info info)
 		return NULL;
 	}
 
-	// Get xmlDoc
+	// Get xmlNode
 	status = napi_get_value_external(env, argv[0], (void **)&node);
 	if (status != napi_ok) {
 		napi_throw_error(env, NULL, "Can't read xmlNode at arg 0");
@@ -977,4 +1005,81 @@ _xmlNodeGetContent(napi_env env, napi_callback_info info)
 
 	xmlFree(mem);
 	return export;
+}
+
+napi_value
+_xmlNodeDumpOutput(napi_env env, napi_callback_info info)
+{
+	napi_status		status;
+	size_t			argc = 6;
+	napi_value		argv[6];
+	napi_valuetype		vt;
+	xmlOutputBufferPtr	buf;
+	xmlDocPtr		doc;
+	xmlNodePtr		cur;
+	int32_t			level, format;
+	char			encp[20], *encoding;
+
+	// Get arguments
+	status = napi_get_cb_info(env, info, &argc, argv, NULL, NULL);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read arguments");
+		return NULL;
+	}
+
+	// Get xmlOutputBufferPtr
+	status = napi_get_value_external(env, argv[0], (void **)&buf);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read "
+		    "xmlNodeOutputBufferPtr at arg 0");
+		return NULL;
+	}
+
+	// Get xmlDocPtr
+	status = napi_get_value_external(env, argv[1], (void **)&doc);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlDocPtr at arg 1");
+		return NULL;
+	}
+
+	// Get xmlNodePtr
+	status = napi_get_value_external(env, argv[2], (void **)&cur);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read xmlNodePtr at arg 2");
+		return NULL;
+	}
+
+	// Get level
+	status = napi_get_value_int32(env, argv[3], &level);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read level at arg 3");
+		return NULL;
+	}
+
+	// Get format
+	status = napi_get_value_int32(env, argv[4], &format);
+	if (status != napi_ok) {
+		napi_throw_error(env, NULL, "Can't read format at arg 4");
+		return NULL;
+	}
+
+	// Get encoding
+	status = napi_typeof(env, argv[5], &vt);
+	if (vt == napi_undefined || vt == napi_null) {
+		encoding = NULL;
+	} else {
+		status = napi_get_value_string_latin1(env, argv[5], encp,
+		    20, NULL);
+		if (status != napi_ok) {
+			napi_throw_error(env, NULL, "Can't read encoding at "
+			     "arg 5");
+			return NULL;
+		}
+		encoding = encp;
+	}
+
+	// Exec
+	xmlNodeDumpOutput(buf, doc, cur, level, format, encoding);
+
+	return NULL;
 }

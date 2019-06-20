@@ -4,7 +4,9 @@
       "target_name": "libxml2",
       "sources": [
         "c14n.c",
+	"encoding.c",
         "init.c",
+	"IO.c",
 	"parser.c",
 	"tree.c",
 	"xpath.c"

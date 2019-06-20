@@ -2,27 +2,27 @@
 #include "c14n.h"
 #include "xpath.h"
 #include "tree.h"
+#include "encoding.h"
+#include "IO.h"
 
 napi_value
 Init(napi_env env, napi_value exports)
 {
 	napi_status status;
 
-	status = parser_init(env, exports);
-	if (status != napi_ok)
+#define NAPI_MODULE_INIT(FN)						\
+	status = FN ## _init(env, exports);				\
+	if (status != napi_ok)						\
 		return NULL;
 
-	status = c14n_init(env, exports);
-	if (status != napi_ok)
-		return NULL;
+	NAPI_MODULE_INIT(parser);
+	NAPI_MODULE_INIT(c14n);
+	NAPI_MODULE_INIT(xpath);
+	NAPI_MODULE_INIT(tree);
+	NAPI_MODULE_INIT(encoding);
+	NAPI_MODULE_INIT(IO);
 
-	status = xpath_init(env, exports);
-	if (status != napi_ok)
-		return NULL;
-
-	status = tree_init(env, exports);
-	if (status != napi_ok)
-		return NULL;
+#undef NAPI_MODULE_INIT
 
 	return exports;
 }
